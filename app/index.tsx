@@ -1,52 +1,109 @@
+
 import React, { useState } from 'react';
-import { Text, View, Image, TouchableOpacity } from 'react-native';
-import { commonStyles, colors } from '../styles/commonStyles';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SimpleBottomSheet from '../components/BottomSheet';
+import { router } from 'expo-router';
+import { colors, commonStyles } from '../styles/commonStyles';
+import { mockMovies, featuredContent, trendingContent, newReleases } from '../data/mockData';
+import { Movie } from '../types/Movie';
+import HeroSection from '../components/HeroSection';
+import MovieRow from '../components/MovieRow';
+import VideoPlayer from '../components/VideoPlayer';
 
+export default function HomeScreen() {
+  const [showPlayer, setShowPlayer] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-export default function MainScreen() {
-  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
-
-  const handleOpenBottomSheet = () => {
-    setIsBottomSheetVisible(true);
+  const handleMoviePress = (movie: Movie) => {
+    router.push(`/movie/${movie.id}`);
   };
 
+  const handlePlayMovie = (movie: Movie) => {
+    setSelectedMovie(movie);
+    setShowPlayer(true);
+  };
+
+  const handleAddToWatchlist = (movie: Movie) => {
+    console.log('Added to watchlist:', movie.title);
+  };
+
+  if (showPlayer && selectedMovie) {
+    return (
+      <VideoPlayer
+        videoUrl={selectedMovie.videoUrl}
+        title={selectedMovie.title}
+        onClose={() => {
+          setShowPlayer(false);
+          setSelectedMovie(null);
+        }}
+        subtitles={selectedMovie.subtitles}
+        quality={selectedMovie.quality}
+      />
+    );
+  }
+
   return (
-      <SafeAreaView style={commonStyles.container}>
-        <View style={commonStyles.content}>
-          <Image
-            source={require('../assets/images/final_quest_240x240.png')}
-            style={{ width: 180, height: 180 }}
-            resizeMode="contain"
-          />
-          <Text style={commonStyles.title}>This is a placeholder app.</Text>
-          <Text style={commonStyles.text}>Your app will be displayed here when it's ready.</Text>
-
-          <TouchableOpacity
-            style={{
-              backgroundColor: colors.primary,
-              paddingHorizontal: 24,
-              paddingVertical: 12,
-              borderRadius: 8,
-              marginTop: 30,
-            }}
-            onPress={handleOpenBottomSheet}
-          >
-            <Text style={{
-              color: colors.text,
-              fontSize: 16,
-              fontWeight: '600',
-            }}>
-              Open Bottom Sheet
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <SimpleBottomSheet
-          isVisible={isBottomSheetVisible}
-          onClose={() => setIsBottomSheetVisible(false)}
+    <SafeAreaView style={commonStyles.container}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Hero Section */}
+        <HeroSection
+          movie={featuredContent}
+          onPlay={() => handlePlayMovie(featuredContent)}
+          onAddToWatchlist={() => handleAddToWatchlist(featuredContent)}
         />
-      </SafeAreaView>
+
+        {/* Trending Now */}
+        <MovieRow
+          title="Trending Now"
+          movies={trendingContent}
+          onMoviePress={handleMoviePress}
+          onAddToWatchlist={handleAddToWatchlist}
+          size="large"
+        />
+
+        {/* New Releases */}
+        <MovieRow
+          title="New Releases"
+          movies={newReleases}
+          onMoviePress={handleMoviePress}
+          onAddToWatchlist={handleAddToWatchlist}
+          size="medium"
+        />
+
+        {/* Popular Movies */}
+        <MovieRow
+          title="Popular Movies"
+          movies={mockMovies}
+          onMoviePress={handleMoviePress}
+          onAddToWatchlist={handleAddToWatchlist}
+          size="medium"
+        />
+
+        {/* Action Movies */}
+        <MovieRow
+          title="Action Movies"
+          movies={mockMovies.filter(movie => movie.genre.includes('Action'))}
+          onMoviePress={handleMoviePress}
+          onAddToWatchlist={handleAddToWatchlist}
+          size="medium"
+        />
+
+        {/* Drama Movies */}
+        <MovieRow
+          title="Drama Movies"
+          movies={mockMovies.filter(movie => movie.genre.includes('Drama'))}
+          onMoviePress={handleMoviePress}
+          onAddToWatchlist={handleAddToWatchlist}
+          size="medium"
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+});
